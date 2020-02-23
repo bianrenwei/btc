@@ -2,13 +2,9 @@ package com.specimen.btc.web.config.authconfig;
 
 import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.specimen.btc.web.config.MyAuthenctiationFailureHandler;
-import com.specimen.btc.web.config.MyAuthenctiationSuccessHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -19,16 +15,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.web.filter.CharacterEncodingFilter;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +37,10 @@ import java.io.PrintWriter;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+  @Resource MyAuthenctiationSuccessHandler myAuthenctiationSuccessHandler;
+
+  @Resource MyAuthenctiationFailureHandler myAuthenctiationFailureHandler;
+
   @Bean
   PasswordEncoder passwordEncoder() {
 
@@ -78,8 +74,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .authenticated()
         .and()
         .formLogin()
+        .successHandler(myAuthenctiationSuccessHandler)
         .and()
-        .csrf().disable();
+        .csrf()
+        .disable();
 
     http.addFilterAt(
         customAuthenticationFilter(),
@@ -151,24 +149,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     return filter;
   }
-
-  public static String getCookieValue(HttpServletRequest request, String cookieName, String defaultValue) {
-    Cookie[] cookieList = request.getCookies();
-    if (cookieList != null && cookieName != null) {
-      for(int i = 0; i < cookieList.length; ++i) {
-        try {
-          if (cookieList[i].getName().equals(cookieName)) {
-            return cookieList[i].getValue();
-          }
-        } catch (Exception var6) {
-          log.error("getCookieValue(HttpServletRequest, String, String)", var6);
-        }
-      }
-
-      return defaultValue;
-    } else {
-      return defaultValue;
-    }
-  }
-
 }

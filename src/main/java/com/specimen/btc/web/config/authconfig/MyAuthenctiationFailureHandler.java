@@ -1,4 +1,4 @@
-package com.specimen.btc.web.config;
+package com.specimen.btc.web.config.authconfig;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
